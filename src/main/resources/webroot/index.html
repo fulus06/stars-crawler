@@ -1,13 +1,77 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Stars Crawler</title>
+    <meta charset="UTF-8">
+    <title>Stars Crawler (stats)</title>
+    <script src="//cdn.jsdelivr.net/sockjs/1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vertx/2.0.0/vertxbus.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+    <script type="text/javascript">
+        var eb = new vertx.EventBus(window.location + "eventbus");
+        eb.onopen = function () {
+            eb.registerHandler("stars.stats", function (msg) {
+                var allFormatted = msg.all.map(function (e) {
+                    return e.name + " (" + e.count + " occurences)";
+                });
+                $("#logs").prepend("<p>" + toLog(msg.id, msg.lastURL) + "</p>");
+                $("#url-pool-size").html(msg.poolSize);
+                $("#unique-items").html(msg.unique);
+                $("#podium-1").html(allFormatted[0] || "n/a");
+                $("#podium-2").html(allFormatted[1] || "n/a");
+                $("#podium-3").html(allFormatted[2] || "n/a");
+                $("#all").html(msg.all.map(function (e) {
+                    return e.name + " (" + e.count + ")";
+                }).join(", "));
+            });
+        };
+        function toLog(host, url) {
+            return new Date().toLocaleString() + ": <a href='" + url + "'>" + url + "</a> scanned by " + host
+        }
+    </script>
+    <style type="text/css">
+        .cell {
+            display: table-cell;
+            padding: 5px;
+            min-width: 200px;
+            border: 1px solid black;
+        }
+        .cell-left {
+            background-color: #b8d689;
+        }
+        .cell-right {
+            background-color: #94cdbf;
+        }
+    </style>
 </head>
-<body>
-    <h1>Welcome to Stars Crawler!</h1>
-    <p>
-        <a href="stats">View stats</a><br>
-    </p>
+<body style="font-family: monospace">
+<h1 style="text-align: center">Stars Crawler</h1>
+<div id="stats" style="display: table">
+    <div style="display: table-row">
+        <div class="cell cell-left">Podium: first</div>
+        <div id="podium-1" class="cell cell-right"></div>
+    </div>
+    <div style="display: table-row">
+        <div class="cell cell-left">Podium: second</div>
+        <div id="podium-2" class="cell cell-right"></div>
+    </div>
+    <div style="display: table-row">
+        <div class="cell cell-left">Podium: third</div>
+        <div id="podium-3" class="cell cell-right"></div>
+    </div>
+    <div style="display: table-row">
+        <div class="cell cell-left">URL pool size</div>
+        <div id="url-pool-size" class="cell cell-right"></div>
+    </div>
+    <div style="display: table-row">
+        <div class="cell cell-left">Number of unique items</div>
+        <div id="unique-items" class="cell cell-right"></div>
+    </div>
+    <div style="display: table-row">
+        <div class="cell cell-left">All</div>
+        <div id="all" class="cell cell-right"></div>
+    </div>
+</div>
+<br/><br/>
+<div id="logs" style="line-height: 5px"></div>
 </body>
 </html>

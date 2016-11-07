@@ -10,11 +10,11 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import io.vertx.core.AbstractVerticle;
-import io.vertx.core.buffer.Buffer;
-import io.vertx.core.eventbus.EventBus;
-import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientOptions;
+import io.vertx.rxjava.core.AbstractVerticle;
+import io.vertx.rxjava.core.buffer.Buffer;
+import io.vertx.rxjava.core.eventbus.EventBus;
+import io.vertx.rxjava.core.http.HttpClient;
 
 /**
  * @author Joel Takvorian
@@ -41,7 +41,8 @@ public class CrawlerVerticle extends AbstractVerticle {
         final URL startingPoint = new URL("https://en.wikipedia.org/wiki/Comparison_of_Star_Trek_and_Star_Wars");
         urls.push(startingPoint);
 
-        vertx.setPeriodic(60000, v -> {
+        // Scan next every 20 seconds (be fair with wikipedia!)
+        vertx.setPeriodic(20000, v -> {
             eb.send(EB_POOL_SIZE, urls.size());
             URL url = urls.poll();
             if (url != null) {
