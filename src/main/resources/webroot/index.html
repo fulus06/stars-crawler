@@ -9,19 +9,27 @@
     <script type="text/javascript">
         var eb = new vertx.EventBus(window.location + "eventbus");
         eb.onopen = function () {
-            eb.registerHandler("stars.stats", function (msg) {
-                var allFormatted = msg.all.map(function (e) {
-                    return e.name + " (" + e.count + " occurences)";
-                });
-                $("#logs").prepend("<p>" + toLog(msg.id, msg.lastURL) + "</p>");
-                $("#url-pool-size").html(msg.poolSize);
-                $("#unique-items").html(msg.unique);
-                $("#podium-1").html(allFormatted[0] || "n/a");
-                $("#podium-2").html(allFormatted[1] || "n/a");
-                $("#podium-3").html(allFormatted[2] || "n/a");
-                $("#all").html(msg.all.map(function (e) {
-                    return e.name + " (" + e.count + ")";
-                }).join(", "));
+            eb.registerHandler("stars.stats", function(msg) {
+                if (msg.all) {
+                    var allFormatted = msg.all.map(function (e) {
+                        return e.name + " (" + e.count + " occurences)";
+                    });
+                    $("#podium-1").html(allFormatted[0] || "n/a");
+                    $("#podium-2").html(allFormatted[1] || "n/a");
+                    $("#podium-3").html(allFormatted[2] || "n/a");
+                    $("#all").html(msg.all.map(function (e) {
+                        return e.name + " (" + e.count + ")";
+                    }).join(", "));
+                }
+                if (msg.host && msg.url) {
+                    $("#logs").prepend("<p>" + toLog(msg.host, msg.url) + "</p>");
+                }
+                if (msg.poolSize) {
+                    $("#url-pool-size").html(msg.poolSize);
+                }
+                if (msg.unique) {
+                    $("#unique-items").html(msg.unique);
+                }
             });
         };
         function toLog(host, url) {
