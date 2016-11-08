@@ -11,20 +11,28 @@ oc new-project stars-crawler
 git clone https://github.com/jotak/stars-crawler
 ```
 
-* You need to edit Main.java (in src/main/java/com/jotak/stars) to set your openshift oauth access token in 
+* You need to edit Cluster.java (in stars-crawler-common) to set your openshift oauth access token in 
 Authorization header. To get your access token, the quickest is to open your browser on [openshift 
 address]/oauth/token/request and login. In the long term, better is to [create a service account](https://docs.openshift.com/container-platform/3.3/rest_api/index.html#rest-api-serviceaccount-tokens).
 
 * Back in your terminal:
 
 ```bash
-cd stars-crawler
-oc new-build --binary --name=stars-crawler
-mvn package; oc start-build stars-crawler --from-dir=. --follow
-oc new-app stars-crawler
-oc expose service stars-crawler
+oc new-build --binary --name=stars-crawler-http
+oc new-build --binary --name=stars-crawler-stats
+oc new-build --binary --name=stars-crawler-crawler
+oc new-app stars-crawler-http
+oc new-app stars-crawler-stats
+oc new-app stars-crawler-crawler
+oc expose service stars-crawler-http
 ```
 
-## Redeploy
+## Deploy
 
-To redeploy, just run again `mvn package; oc start-build stars-crawler --from-dir=. --follow`
+```bash
+mvn install
+oc start-build stars-crawler-stats --from-dir=stats
+oc start-build stars-crawler-http --from-dir=http
+oc start-build stars-crawler-crawler --from-dir=crawler
+```
+

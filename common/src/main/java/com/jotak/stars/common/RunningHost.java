@@ -1,4 +1,4 @@
-package com.jotak.stars;
+package com.jotak.stars.common;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;

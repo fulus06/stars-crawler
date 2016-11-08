@@ -1,5 +1,9 @@
 package com.jotak.stars.crawler;
 
+import static com.jotak.stars.common.EventBusAddresses.EB_FEED;
+import static com.jotak.stars.common.EventBusAddresses.EB_LAST_SCAN;
+import static com.jotak.stars.common.EventBusAddresses.EB_POOL_SIZE;
+
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Deque;
@@ -10,7 +14,11 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.jotak.stars.common.Cluster;
+
 import io.vertx.core.http.HttpClientOptions;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 import io.vertx.rxjava.core.AbstractVerticle;
 import io.vertx.rxjava.core.buffer.Buffer;
 import io.vertx.rxjava.core.eventbus.EventBus;
@@ -21,10 +29,7 @@ import io.vertx.rxjava.core.http.HttpClient;
  */
 public class CrawlerVerticle extends AbstractVerticle {
 
-    public static final String EB_FEED = "stars.feed";
-    public static final String EB_LAST_SCAN = "stars.last-scan";
-    public static final String EB_POOL_SIZE = "stars.pool-size";
-
+    private static final Logger LOG = LoggerFactory.getLogger(CrawlerVerticle.class);
     private static final Pattern URL_FINDER = Pattern.compile("(http[s]?://[\\w_.-]+(:[0-9]+)?(/[\\w_.%&;#:+=-]*)*)");
     private static final Pattern STAR_XXX_FINDER = Pattern.compile("(star[s]? [\\w]+)", Pattern.CASE_INSENSITIVE);
 
@@ -46,6 +51,7 @@ public class CrawlerVerticle extends AbstractVerticle {
             eb.send(EB_POOL_SIZE, urls.size());
             URL url = urls.poll();
             if (url != null) {
+                LOG.info("Scanning " + url);
                 if (urls.size() > 10000) {
                     urls.clear();
                     fetched.clear();
@@ -90,6 +96,7 @@ public class CrawlerVerticle extends AbstractVerticle {
                     }
                     Matcher starsMatcher = STAR_XXX_FINDER.matcher(content);
                     while (starsMatcher.find()) {
+                        LOG.info("Found " + starsMatcher.group());
                         eb.send(EB_FEED, starsMatcher.group().toLowerCase());
                     }
                     future.complete();
@@ -103,5 +110,9 @@ public class CrawlerVerticle extends AbstractVerticle {
             int randomPos = ThreadLocalRandom.current().nextInt(0, 1+size());
             this.add(randomPos, t);
         }
+    }
+
+    public static void main(String[] args) {
+        Cluster.deploy(new CrawlerVerticle(), LOG::error);
     }
 }
